@@ -1,0 +1,16 @@
+[Unit]
+Description=BayTechController
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/baytech_controller
+Environment=PATH=/opt/baytech_controller/.venv/bin:$PATH
+Environment=PYTHONPATH=/opt/baytech_controller/.venv/bin
+ExecStart=/opt/baytech_controller/.venv/bin/python3 /opt/baytech_controller/baytech_controller.py
+Restart=on-failure
+Environment=FLASK_CONFIG=production
+
+[Install]
+WantedBy=multi-user.target
