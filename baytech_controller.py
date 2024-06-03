@@ -53,6 +53,9 @@ def getStatus():
     ser.connect()
     ser.state()
     status = ser.getStatus()
+    status['tempC'] = float(status['Internal Temperature'].replace(" C",""))
+    status['tempF'] = (status['tempC'] * 9/5) + 32
+#    logging.info(status)
     ser.close()
     return status
 
@@ -63,7 +66,6 @@ def favicon():
 @app.route('/')
 def root():
     status = getStatus()
-    print(status)
     return render_template("index.html", status=status)
 
 @app.route('/power', methods=["POST"])
