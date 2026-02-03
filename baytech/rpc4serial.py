@@ -30,16 +30,16 @@ RE_Outlet8 = r'8\)\.*\b(.*)\b\s*:\s*(\w*)'
 
 # Internal Temperature:  33.5 C
 
-# Circuit Breaker: Off 
+# Circuit Breaker: Off
 
-# 1)...port01    : On 
-# 2)...port02    : On 
-# 3)...port03    : On 
-# 4)...port04    : On 
-# 5)...port05    : On 
-# 6)...port06    : On 
-# 7)...port07    : On 
-# 8)...port08    : On 
+# 1)...port01    : On
+# 2)...port02    : On
+# 3)...port03    : On
+# 4)...port04    : On
+# 5)...port05    : On
+# 6)...port06    : On
+# 7)...port07    : On
+# 8)...port08    : On
 
 # Type "Help" for a list of commands
 
@@ -243,7 +243,7 @@ class RPC4_NC(object):
             outlets['8'] = {key: value}
         else:
             outlets['8'] = {}
-            p_LOGGER.debug( 'No match' )
+            _LOGGER.debug( 'No match' )
 
         status['outlets'] = outlets
         return status
