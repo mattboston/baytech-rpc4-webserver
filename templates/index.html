@@ -1,322 +1,627 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- https://codepen.io/matthewcs142/project/editor/ZnGjOy -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css"
     integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
     integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
-  <link rel="stylesheet" href="css/style.css">
   <title>BayTech RPC-4 Manager</title>
+  <style>
+    :root {
+      --bg-root:    #0b0e14;
+      --bg-card:    #111722;
+      --bg-row:     #161d2b;
+      --bg-row-alt: #131929;
+      --border:     #1f2d45;
+      --border-dim: #172035;
+      --text-hi:    #dce8f5;
+      --text-mid:   #7e93b0;
+      --text-lo:    #3d5070;
+      --green:      #2ecc71;
+      --green-dim:  #1a7a44;
+      --red:        #e74c3c;
+      --red-dim:    #7a2020;
+      --blue:       #4a9eff;
+      --amber:      #f0a500;
+      --font-mono:  'IBM Plex Mono', monospace;
+      --font-sans:  'IBM Plex Sans', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      background: var(--bg-root);
+      color: var(--text-hi);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Navbar ─────────────────────────────── */
+    .site-nav {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .site-nav .brand {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-hi);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+    .site-nav .brand:hover { color: var(--blue); text-decoration: none; }
+    .brand-sep { color: var(--text-lo); font-family: var(--font-mono); }
+    .brand-model {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-mid);
+      letter-spacing: 0.05em;
+    }
+    .nav-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      margin-left: auto;
+      animation: pulse-dot 3s ease-in-out infinite;
+    }
+    .nav-status {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--green);
+      letter-spacing: 0.1em;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--green); }
+      50%       { opacity: 0.5; box-shadow: 0 0 2px var(--green); }
+    }
+
+    /* ── Layout ─────────────────────────────── */
+    .main-wrap {
+      flex: 1;
+      padding: 2rem 1.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ── Section header ──────────────────────── */
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-lo);
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── Outlet table ────────────────────────── */
+    .outlet-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .outlet-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0;
+    }
+    .outlet-table thead th {
+      background: var(--bg-row);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-lo);
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .outlet-table tbody tr {
+      border-bottom: 1px solid var(--border-dim);
+      transition: background 0.15s;
+    }
+    .outlet-table tbody tr:last-child { border-bottom: none; }
+    .outlet-table tbody tr:hover { background: rgba(74,158,255,0.03); }
+    .outlet-table td {
+      padding: 12px 16px;
+      vertical-align: middle;
+    }
+
+    /* Port number */
+    .port-num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-lo);
+      width: 48px;
+    }
+
+    /* LED indicator */
+    .led-wrap { display: flex; align-items: center; gap: 10px; }
+    .led {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .led.on  {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green), 0 0 2px var(--green);
+      animation: pulse-led 3s ease-in-out infinite;
+    }
+    .led.off {
+      background: var(--text-lo);
+      box-shadow: none;
+    }
+    @keyframes pulse-led {
+      0%, 100% { box-shadow: 0 0 8px var(--green), 0 0 2px var(--green); }
+      50%       { box-shadow: 0 0 3px var(--green); }
+    }
+
+    /* Port name */
+    .port-name {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-hi);
+    }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 3px;
+      width: 40px;
+      text-align: center;
+    }
+    .status-badge.on  { background: rgba(46,204,113,0.15); color: var(--green); border: 1px solid rgba(46,204,113,0.3); }
+    .status-badge.off { background: rgba(231,76,60,0.12);  color: var(--red);   border: 1px solid rgba(231,76,60,0.25); }
+
+    /* Power buttons */
+    .power-form { display: flex; gap: 6px; align-items: center; }
+    .btn-pwr {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      padding: 5px 14px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-transform: uppercase;
+    }
+    .btn-pwr-on {
+      background: rgba(46,204,113,0.12);
+      color: var(--green);
+      border-color: rgba(46,204,113,0.35);
+    }
+    .btn-pwr-on:hover:not(:disabled) {
+      background: rgba(46,204,113,0.25);
+      border-color: var(--green);
+    }
+    .btn-pwr-on:disabled {
+      background: rgba(46,204,113,0.25);
+      border-color: var(--green);
+      color: var(--green);
+      cursor: default;
+      opacity: 1;
+    }
+    .btn-pwr-off {
+      background: rgba(231,76,60,0.1);
+      color: var(--red);
+      border-color: rgba(231,76,60,0.3);
+    }
+    .btn-pwr-off:hover:not(:disabled) {
+      background: rgba(231,76,60,0.22);
+      border-color: var(--red);
+    }
+    .btn-pwr-off:disabled {
+      background: rgba(231,76,60,0.22);
+      border-color: var(--red);
+      color: var(--red);
+      cursor: default;
+      opacity: 1;
+    }
+
+    /* All-outlets row */
+    .row-all td {
+      background: rgba(31,45,69,0.4);
+      border-top: 1px solid var(--border) !important;
+    }
+    .all-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-mid);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* Rename button */
+    .btn-rename {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-lo);
+      width: 28px; height: 28px;
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 11px;
+      padding: 0;
+    }
+    .btn-rename:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: rgba(74,158,255,0.08);
+    }
+
+    /* ── Stat cards ──────────────────────────── */
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.25rem 1rem;
+      margin-bottom: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .stat-card.card-current::before { background: var(--blue); }
+    .stat-card.card-max::before     { background: var(--amber); }
+    .stat-card.card-temp::before    { background: #e67e22; }
+    .stat-card.card-breaker::before { background: var(--red); }
+
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-lo);
+      margin-bottom: 0.5rem;
+    }
+    .stat-value {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    .stat-card.card-current .stat-value { color: var(--blue); }
+    .stat-card.card-max     .stat-value { color: var(--amber); }
+    .stat-card.card-temp    .stat-value { color: #e67e22; }
+    .stat-card.card-breaker .stat-value { color: var(--red); }
+
+    .stat-unit {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-mid);
+    }
+    .stat-icon {
+      position: absolute;
+      bottom: 12px; right: 14px;
+      font-size: 32px;
+      opacity: 0.06;
+      color: var(--text-hi);
+    }
+    .temp-sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-mid);
+      margin-top: 4px;
+    }
+
+    /* ── Rename modal ────────────────────────── */
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .modal-header {
+      background: var(--bg-row);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+    }
+    .modal-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-hi);
+      letter-spacing: 0.05em;
+    }
+    .modal-header .close {
+      color: var(--text-mid);
+      opacity: 1;
+      text-shadow: none;
+    }
+    .modal-header .close:hover { color: var(--text-hi); }
+    .modal-body { padding: 1.25rem; }
+    .modal-footer {
+      border-top: 1px solid var(--border);
+      padding: 0.75rem 1.25rem;
+    }
+    .form-label-mono {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+    .form-input-dark {
+      background: var(--bg-root);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-hi);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      padding: 8px 12px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input-dark:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(74,158,255,0.12);
+    }
+    .hint-text {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-lo);
+      margin-top: 5px;
+    }
+    .btn-cancel {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-mid);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 6px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-cancel:hover { border-color: var(--text-mid); color: var(--text-hi); }
+    .btn-save {
+      background: rgba(74,158,255,0.15);
+      border: 1px solid rgba(74,158,255,0.4);
+      color: var(--blue);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-save:hover { background: rgba(74,158,255,0.25); border-color: var(--blue); }
+
+    /* ── Footer ──────────────────────────────── */
+    .site-footer {
+      border-top: 1px solid var(--border-dim);
+      padding: 1rem 1.5rem;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-lo);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Fade-in animation ───────────────────── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 0.4s ease forwards;
+    }
+    .fade-up:nth-child(1) { animation-delay: 0.05s; }
+    .fade-up:nth-child(2) { animation-delay: 0.1s; }
+    .fade-up:nth-child(3) { animation-delay: 0.15s; }
+    .fade-up:nth-child(4) { animation-delay: 0.2s; }
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 
 <body>
-  <nav class="navbar navbar-expand-sm navbar-dark bg-dark p-0">
-    <div class="container">
-      <a href="/" class="navbar-brand">BayTech RPC-4 Manager</a>
-      <button class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarCollapse">
-        <ul class="navbar-nav">
-          <li class="nav-item px-2">
-            <a href="/" class="nav-link active">Dashboard</a>
-          </li>
-          <li class="nav-item px-2">
-            <a href="settings.html" class="nav-link">Settings</a>
-          </li>
-        </ul>
 
-        <ul class="navbar-nav ml-auto">
-          <li class="nav-item dropdown mr-3">
-            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-              <i class="fas fa-user"></i> Welcome Matt
-              <!--Placeholder Username-->
-            </a>
-            <div class="dropdown-menu">
-              <a href="profile.html" class="dropdown-item">
-                <i class="fas fa-user-circle"></i> Profile
-              </a>
-              <a href="settings.html" class="dropdown-item">
-                <i class="fas fa-cog"></i> Settings
-              </a>
-            </div>
-          </li>
-          <li class="nav-item">
-            <a href="login.html" class="nav-link">
-              <i class="fas fa-user-times"></i> Logout
-            </a>
-          </li>
-        </ul>
-      </div>
-    </div>
+  <!-- Navbar -->
+  <nav class="site-nav">
+    <a href="/" class="brand">BayTech</a>
+    <span class="brand-sep">/</span>
+    <span class="brand-model">RPC-4 PDU Manager</span>
+    <div class="nav-dot ml-auto"></div>
+    <span class="nav-status">ONLINE</span>
   </nav>
 
-  <!--Header-->
-  <header id="main-header" class="py-2 bg-primary text-white">
-    <div class="container">
-      <div class="ro">
-        <div class="col-md-6">
-          <h1><i class="fas fa-cog"></i>BayTech RPC-4 Manager</h1>
-        </div>
-      </div>
-    </div>
-  </header>
+  <!-- Main content -->
+  <div class="main-wrap">
+    <div class="row">
 
-    <!--Actions-->
-    <section id="actions" class="py-4 mb-4 bg-light">
-        <div class="container">
-
-        </div>
-        </section>
-        
-  <!--Posts-->
-  <section id="posts">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-9">
-          <div class="card">
-            <div class="card-header">
-              <h4>Outlets</h4>
-            </div>
-            <table class="table table-striped">
-              <thead class="thead-dark">
-                <tr>
-                  <th>Port #</th>
-                  <th>Name</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for outlet_id in status['outlets'] %}
-                    {% for key, value in status['outlets'][outlet_id].items() %}
-                <tr>
-                    <td>{{ outlet_id }}</td>
-                    <td>{{ key }}</td>
-                    <td>
-                        <form action="/power" method="POST">
-                            <input type="hidden" id="outlet_id" name="outlet_id" value="{{ outlet_id }}">
-                            <button class="btn btn-on" name="clicked"{% if value == 'On'%} disabled{% endif %} value="On"><b>On</b></button>
-                            <button class="btn btn-off" name="clicked"{% if value == 'Off'%} disabled{% endif %} value="Off"><b>Off</b></button>
-                        </form>
-                    </td>
-                </tr>
-                    {% endfor %}
+      <!-- Outlets panel -->
+      <div class="col-lg-8 mb-4">
+        <div class="section-label">Power Outlets</div>
+        <div class="outlet-card">
+          <table class="outlet-table">
+            <thead>
+              <tr>
+                <th style="width:48px">#</th>
+                <th>Name</th>
+                <th style="width:60px">State</th>
+                <th style="width:160px">Control</th>
+                <th style="width:40px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for outlet_id in status['outlets'] %}
+                {% for key, value in status['outlets'][outlet_id].items() %}
+              <tr>
+                <td class="port-num">{{ outlet_id }}</td>
+                <td>
+                  <div class="led-wrap">
+                    <span class="led {{ 'on' if value == 'On' else 'off' }}"></span>
+                    <span class="port-name">{{ key }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="status-badge {{ 'on' if value == 'On' else 'off' }}">{{ value }}</span>
+                </td>
+                <td>
+                  <form action="/power" method="POST" class="power-form">
+                    <input type="hidden" name="outlet_id" value="{{ outlet_id }}">
+                    <button type="submit" name="clicked" value="On"
+                      class="btn-pwr btn-pwr-on"
+                      {% if value == 'On' %}disabled{% endif %}>On</button>
+                    <button type="submit" name="clicked" value="Off"
+                      class="btn-pwr btn-pwr-off"
+                      {% if value == 'Off' %}disabled{% endif %}>Off</button>
+                  </form>
+                </td>
+                <td>
+                  <button class="btn-rename rename-btn"
+                    data-port-id="{{ outlet_id }}"
+                    data-port-name="{{ key }}"
+                    data-toggle="modal"
+                    data-target="#renameModal"
+                    title="Rename outlet">
+                    <i class="fas fa-pencil-alt"></i>
+                  </button>
+                </td>
+              </tr>
                 {% endfor %}
-                <tr>
-                    <td></td>
-                    <td>All Outlets</td>
-                    <td>
-                        <form action="/power_all" method="POST">
-                            <button class="btn btn-on" name="clicked" value="On"><b>On</b></button>
-                            <button class="btn btn-off" name="clicked" value="Off"><b>Off</b></button>
-                        </form>
-                    </td>
-                </tr>
-
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <!-- https://getbootstrap.com/docs/5.3/utilities/background/#background-gradient -->
-        <div class="col-md-3">
-          <div class="card text-center bg-primary text-white mb-3">
-            <div class="card-body">
-              <h3>True RMS Current (amps)</h3>
-              <h4 class="display-4">
-                <i class="fas fa-transformer-bolt"></i> {{ status['True RMS Current']}}
-              </h4>
-              <a href="posts.html" class="btn btn-outline-light btn-sm">View</a>
-            </div>
-          </div>
-
-          <div class="card text-center bg-secondary text-white mb-3">
-            <div class="card-body">
-              <h3>Max Detected Current (amps)</h3>
-              <h4 class="display-4">
-                <i class="fas fa-folder"></i> {{ status['Maximum Detected']}}
-              </h4>
-              <a href="categories.html" class="btn btn-outline-light btn-sm">View</a>
-            </div>
-          </div>
-
-          <div class="card text-center bg-success text-white mb-3">
-            <div class="card-body">
-              <h3>Internal Temperature</h3>
-              <h4 class="display-4">
-                <i class="fas fa-temperature-three-quarters"></i> {{ status['tempF'] }}F
-              </h4>
-              <a href="users.html" class="btn btn-outline-light btn-sm">View</a>
-            </div>
-          </div>
-
-          <div class="card text-center bg-danger text-white mb-3">
-            <div class="card-body">
-              <h3>Circuit Breaker</h3>
-              <h4 class="display-4">
-                <i class="fas fa-users"></i> {{ status['Circuit Breaker']}}
-              </h4>
-              <a href="users.html" class="btn btn-outline-light btn-sm">View</a>
-            </div>
-          </div>
-
+              {% endfor %}
+              <tr class="row-all">
+                <td class="port-num" style="color:var(--text-lo)">—</td>
+                <td><span class="all-label">All Outlets</span></td>
+                <td></td>
+                <td>
+                  <form action="/power_all" method="POST" class="power-form">
+                    <button type="submit" name="clicked" value="On"
+                      class="btn-pwr btn-pwr-on">On</button>
+                    <button type="submit" name="clicked" value="Off"
+                      class="btn-pwr btn-pwr-off">Off</button>
+                  </form>
+                </td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!--Footer-->
-  <footer id="main-footer" class="bg-dark text-white mt-5 p-5">
-    <div class="container">
-      <div class="row">
-        <div class="col">
-          <p class="lead text-center">
-            Copyright &copy; <span id="year"></span>
-            Matt Shields
-          </p>
+      <!-- Stats sidebar -->
+      <div class="col-lg-4">
+        <div class="section-label">System Status</div>
+
+        <div class="stat-card card-current fade-up">
+          <div class="stat-label">True RMS Current</div>
+          <div class="stat-value">{{ status['True RMS Current'] }}</div>
+          <i class="fas fa-bolt stat-icon"></i>
+        </div>
+
+        <div class="stat-card card-max fade-up">
+          <div class="stat-label">Maximum Detected</div>
+          <div class="stat-value">{{ status['Maximum Detected'] }}<span class="stat-unit"> A</span></div>
+          <i class="fas fa-tachometer-alt stat-icon"></i>
+        </div>
+
+        <div class="stat-card card-temp fade-up">
+          <div class="stat-label">Internal Temperature</div>
+          <div class="stat-value">{{ "%.1f"|format(status['tempF']) }}<span class="stat-unit">°F</span></div>
+          <div class="temp-sub">{{ status['Internal Temperature'] }}</div>
+          <i class="fas fa-thermometer-half stat-icon"></i>
+        </div>
+
+        <div class="stat-card card-breaker fade-up">
+          <div class="stat-label">Circuit Breaker</div>
+          <div class="stat-value">{{ status['Circuit Breaker'] }}</div>
+          <i class="fas fa-shield-alt stat-icon"></i>
         </div>
       </div>
+
     </div>
+  </div>
+
+  <!-- Rename Modal -->
+  <div class="modal fade" id="renameModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="modal-title">Rename Port <span id="renamePortLabel"></span></span>
+          <button class="close" data-dismiss="modal"><span>&times;</span></button>
+        </div>
+        <form action="/port/rename" method="POST">
+          <div class="modal-body">
+            <input type="hidden" name="port_id" id="renamePortId">
+            <label class="form-label-mono" for="renamePortName">New Name</label>
+            <input type="text" class="form-input-dark" name="name" id="renamePortName"
+              maxlength="10" required autocomplete="off">
+            <div class="hint-text">Max 10 characters</div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" data-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn-save">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    &copy; <span id="year"></span> Matt Shields &mdash;
+    <a href="https://github.com/mattboston/baytech-rpc4-webserver" target="_blank" rel="noopener"
+       style="color:var(--text-lo);text-decoration:none;transition:color 0.15s;"
+       onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--text-lo)'">
+      BayTech RPC-4 PDU Manager
+    </a>
   </footer>
 
-  <!--Modals-->
-  <!--Add Post Modal-->
-  <div class="modal fade" id="addPostModal">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title">Add Post</h5>
-          <button class="close" data-dismiss="modal">
-            <span>&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form action="">
-            <div class="form-group">
-              <label for="title">Title</label>
-              <input type="text" class="form-control">
-            </div>
-            <div class="form-group">
-              <label for="category">Category</label>
-              <select name="" id="" class="form-control">
-                <option value=""></option>
-                <option value="">Web Development</option>
-                <option value="">Tech Gadgets</option>
-                <option value="">Business</option>
-                <option value="">Health & Wellness</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="image">Upload Image</label>
-              <div class="custom-file">
-                <input type="file" class="custom-file-input" id="image">
-                <label for="image" class="custom-file-label">Choose File</label>
-              </div>
-              <small class="form-text text-muted">Max Size 3mb</small>
-            </div>
-            <div class="form-group">
-              <label for="body">Body</label>
-              <textarea name="editor1" class="form-control"></textarea>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-primary" data-dismiss="modal">Save Changes</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!--Add Category Modal-->
-  <div class="modal fade" id="addCategoryModal">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header bg-success text-white">
-          <h5 class="modal-title">Add Category</h5>
-          <button class="close" data-dismiss="modal">
-            <span>&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form action="">
-            <div class="form-group">
-              <label for="title">Title</label>
-              <input type="text" class="form-control">
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-success" data-dismiss="modal">Save Changes</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!--Add User Modal-->
-  <div class="modal fade" id="addUserModal">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header bg-warning text-white">
-          <h5 class="modal-title">Add User</h5>
-          <button class="close" data-dismiss="modal">
-            <span>&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form action="">
-            <div class="form-group">
-              <label for="name">Name</label>
-              <input type="text" class="form-control">
-            </div>
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input type="email" class="form-control">
-            </div>
-            <div class="form-group">
-              <label for="password">Password</label>
-              <input type="password" class="form-control">
-            </div>
-            <div class="form-group">
-              <label for="password2">Confirm Password</label>
-              <input type="password" class="form-control">
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-warning" data-dismiss="modal">Save Changes</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!--jQuery CDN-->
-  <script src="http://code.jquery.com/jquery-3.3.1.min.js"
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"
     integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
-
-  <!--popper js CDN-->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
     integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
     crossorigin="anonymous"></script>
-
-  <!--Bootstrap 4 CDN-->
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"
     integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
     crossorigin="anonymous"></script>
-
-  <!--CKEditor CDN-->
-  <script src="https://cdn.ckeditor.com/4.15.1/standard/ckeditor.js"></script>
-
-  <!--Custom JavaScript-->
   <script>
-    // Get the current year for the copyright
     $('#year').text(new Date().getFullYear());
 
-    //CKEditor 
-    CKEDITOR.replace('editor1');
+    $('.rename-btn').on('click', function () {
+      var portId   = $(this).data('port-id');
+      var portName = $(this).data('port-name');
+      $('#renamePortId').val(portId);
+      $('#renamePortName').val(portName.trim());
+      $('#renamePortLabel').text('#' + portId);
+    });
   </script>
 </body>
-
 </html>

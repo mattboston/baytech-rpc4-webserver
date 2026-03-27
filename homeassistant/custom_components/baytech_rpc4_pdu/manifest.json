@@ -1,0 +1,11 @@
+{
+  "domain": "baytech_rpc4_pdu",
+  "name": "Baytech RPC4 PDU Controller",
+  "version": "1.0.0",
+  "documentation": "",
+  "requirements": [],
+  "dependencies": [],
+  "codeowners": [],
+  "config_flow": true,
+  "iot_class": "local_polling"
+}

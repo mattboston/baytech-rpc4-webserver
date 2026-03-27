@@ -303,3 +303,30 @@ class RPC4_NC(object):
             self.turnOff(6)
             self.turnOff(7)
             self.turnOff(8)
+
+    def renameOutlet(self, outlet, name):
+        """Rename an outlet via the Config menu. Name is truncated to 10 chars by the device."""
+        if self.serial is None or not self.connected:
+            return False
+        if outlet < 1 or outlet > 8:
+            return False
+        name = name[:10]
+        # Enter config mode
+        self.serial.write(b'Config\r\n')
+        self.serial.read_until(b'Enter Request:', self.timeout)
+        # Select "Change Outlet Name"
+        self.serial.write(b'2\r\n')
+        self.serial.read_until(b'Enter Request:', self.timeout)
+        # Select outlet number
+        self.serial.write(f'{outlet}\r\n'.encode('UTF-8'))
+        self.serial.read_until(b'Enter :', self.timeout)
+        # Send new name
+        self.serial.write(f'{name}\r\n'.encode('UTF-8'))
+        self.serial.read_until(b'Enter Request:', self.timeout)
+        # Empty enter exits outlet-name sub-menu back to Config menu
+        self.serial.write(b'\r\n')
+        self.serial.read_until(b'Enter Request:', self.timeout)
+        # Exit Config
+        self.serial.write(b'X\r\n')
+        self.serial.read_until(self.command_prompt, self.timeout)
+        return True

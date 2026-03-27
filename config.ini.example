@@ -1,0 +1,6 @@
+[baytech]
+debug = true
+log_file = /opt/baytech_controller/baytech_controller.log
+device = /dev/ttyUSB0
+# Generate with: openssl rand -hex 32
+api_key = CHANGE_ME
